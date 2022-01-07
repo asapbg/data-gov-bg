@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Collections\TranslatableCollection;
+use Illuminate\Support\Facades\DB;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Symfony\Component\VarDumper\Cloner\Data;
@@ -25,7 +26,6 @@ use App\ActionsHistory;
 use Illuminate\Http\Request;
 use App\Translator\Translation;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ApiController;
@@ -756,22 +756,28 @@ class DataSetController extends ApiController
                 }
 
                 if (!empty($criteria['keywords'])) {
+                  preg_match('/[a-f0-9]{8}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{4}\-[a-f0-9]{12}/',$criteria['keywords'],$keywordsIsUuid);
+
+                  if (is_array($keywordsIsUuid) && !empty($keywordsIsUuid)) {
+                    $query->where('uri', $keywordsIsUuid['0']);
+                  } else {
                     $tntIds = DataSet::search($criteria['keywords'])->get()->pluck('id');
 
                     $fullMatchIds = DataSet::select('data_sets.id')
-                        ->leftJoin('translations', 'translations.group_id', '=', 'data_sets.name')
-                        ->where('translations.locale', $locale)
-                        ->where('translations.text', 'like', '%'. $criteria['keywords'] .'%')
-                        ->pluck('id');
+                      ->leftJoin('translations', 'translations.group_id', '=', 'data_sets.name')
+                      ->where('translations.locale', $locale)
+                      ->where('translations.text', 'like', '%'. $criteria['keywords'] .'%')
+                      ->pluck('id');
 
                     $ids = $fullMatchIds->merge($tntIds)->unique();
 
                     $query->whereIn('data_sets.id', $ids);
 
                     if (count($ids)) {
-                        $strIds = $ids->implode(',');
-                        $query->raw(DB::raw('FIELD(data_sets.id, '. $strIds .')'));
+                      $strIds = $ids->implode(',');
+                      $query->raw(DB::raw('FIELD(data_sets.id, '. $strIds .')'));
                     }
+                  }
                 }
 
                 if (isset($criteria['user_datasets_only']) && $criteria['user_datasets_only']) {
