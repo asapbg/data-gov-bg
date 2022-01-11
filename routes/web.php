@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function() {
     Route::post('/admin/organisations/register', 'Admin\OrganisationController@register');
     Route::get('/admin/organisations/register', 'Admin\OrganisationController@showOrgRegisterForm');
     Route::match(['get', 'post'], '/admin/organisations/view/{uri}', 'Admin\OrganisationController@view')->name('adminOrgView');
+    Route::match(['get', 'post'], '/admin/organisations/precept/{uri}', 'Admin\OrganisationController@percept');
     Route::match(['get', 'post'], '/admin/organisations/chronology/{uri}', 'Admin\OrganisationController@chronology');
     Route::match(['post', 'get'], '/admin/organisations/edit/{uri}', 'Admin\OrganisationController@edit');
     Route::post('/admin/organisations/delete/{id}', 'Admin\OrganisationController@delete');

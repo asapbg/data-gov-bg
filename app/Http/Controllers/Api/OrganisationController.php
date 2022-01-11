@@ -38,6 +38,7 @@ class OrganisationController extends ApiController
      * @param string data[logo_filename] - optional
      * @param string data[logo_mimetype] - optional
      * @param string data[logo_data] - optional
+     * @param string data[precept] - optional
      * @param string data[activity_info] - optional
      * @param string data[contacts] - optional
      * @param integer data[parent_org_id] - optional
@@ -74,6 +75,7 @@ class OrganisationController extends ApiController
             'logo_filename'         => 'nullable|string|max:191',
             'logo_mimetype'         => 'nullable|string|max:191',
             'logo_data'             => 'nullable|max:16777215',
+            'precept'               => 'nullable|file|mimes:pdf',
             'activity_info'         => 'nullable|max:8000',
             'contacts'              => 'nullable|max:8000',
             'parent_org_id'         => 'nullable|int|digits_between:1,10',
@@ -231,6 +233,24 @@ class OrganisationController extends ApiController
 
                 DB::commit();
 
+                if (!empty($data['precept']) && Role::isAdmin()) {
+
+                  $file = $data['precept'];
+
+                  $fileDir = storage_path(Organisation::PRECEPT_DIR);
+                  if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                    mkdir($fileDir, 0777);
+                  }
+
+                  $fileDir = $fileDir . DIRECTORY_SEPARATOR . $organisation->uri;
+                  if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                    mkdir($fileDir, 0777);
+                  }
+
+                  $file->move($fileDir, $file->getClientOriginalName());
+
+                }
+
                 return $this->successResponse(['org_id' => $organisation->id], true);
             } catch (QueryException $ex) {
                 DB::rollback();
@@ -257,6 +277,7 @@ class OrganisationController extends ApiController
      * @param string data[logo_filename] - optional
      * @param string data[logo_mimetype] - optional
      * @param string data[logo_data] - optional
+     * @param string data[precept] - optional
      * @param string data[activity_info] - optional
      * @param string data[contacts] - optional
      * @param integer data[parent_org_id] - optional
@@ -285,6 +306,7 @@ class OrganisationController extends ApiController
             'logo_filename'            => 'nullable|string|max:191',
             'logo_mimetype'            => 'nullable|string|max:191',
             'logo_data'                => 'nullable|string|max:16777215',
+            'precept'                  => 'nullable|file|mimes:pdf',
             'activity_info'            => 'nullable|max:8000',
             'contacts'                 => 'nullable|max:8000',
             'parent_org_id'            => 'nullable|int|digits_between:1,10',
@@ -370,6 +392,7 @@ class OrganisationController extends ApiController
             !$validator->fails() && !$imageError
         ) {
             if (!isset($orgData['logo_data'])) {
+
                 DB::beginTransaction();
 
                 $orgData = [];
@@ -407,6 +430,35 @@ class OrganisationController extends ApiController
                 }
 
                 try {
+
+                    if (!empty($data['precept']) && Role::isAdmin()) {
+
+                      $file = $data['precept'];
+
+                      $fileDir = storage_path(Organisation::PRECEPT_DIR);
+                      if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                        mkdir($fileDir, 0777);
+                      }
+
+                      $fileDir = $fileDir . DIRECTORY_SEPARATOR . $orgData['uri'];
+                      if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                        mkdir($fileDir, 0777);
+                      }
+
+                      if (file_exists($fileDir)){
+                        $rDir = new \RecursiveDirectoryIterator($fileDir, \FilesystemIterator::SKIP_DOTS);
+                        $ri = new \RecursiveIteratorIterator($rDir);
+                        foreach ($ri as $currentFile) {
+                          if ($currentFile->isFile()) {
+                            unlink($currentFile);
+                          }
+                        }
+                      }
+
+                      $file->move($fileDir, $file->getClientOriginalName());
+
+                    }
+
                     if (!empty($data['name'])) {
                         $orgData['name'] = $this->trans($data['locale'], $data['name']);
                     }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\Storage;
 use Laravel\Scout\Searchable;
 use App\Translator\Translatable;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,38 @@ class Organisation extends Model implements TranslatableInterface
     const ACTIVE_TRUE = 1;
     const APPROVED_FALSE = 0;
     const APPROVED_TRUE = 1;
+
+    const PRECEPT_DIR = "app/public/organisations";
+
+    /**
+     * Return the precept file name and public path
+     *
+     * @param $uri
+     * @return string|null
+     */
+    public static function getPreceptFile($uri)
+    {
+      $file_path = implode(DIRECTORY_SEPARATOR, [
+        'organisations',
+        $uri
+      ]);
+      $preceptFile = Storage::files('public'.DIRECTORY_SEPARATOR.$file_path);
+      if(empty($preceptFile)) {
+        return null;
+      }
+      $preceptNameExpl = explode("/", $preceptFile[0]);
+      $preceptName = end($preceptNameExpl);
+      $file['name'] = $preceptName;
+      $file_path = implode(DIRECTORY_SEPARATOR, [
+        $file_path,
+        $preceptName
+      ]);
+      if (Storage::disk('local')->exists('public'.DIRECTORY_SEPARATOR.$file_path)) {
+        $file['path'] = Storage::url($file_path);
+        return $file;
+      }
+      return null;
+    }
 
     protected $guarded = ['id'];
 

@@ -58,6 +58,12 @@
                                         href="{{ url('admin/organisations/deletedDatasets/'. $organisation->uri) }}"
                                     >{{ ultrans('custom.deleted_datasets') }}</a>
                                 </li>
+                                <li>
+                                    <a
+                                        class="{{ $view == 'orgPrecept' ? 'active' : null }}"
+                                        href="{{ url('admin/organisations/precept/'. $organisation->uri) }}"
+                                    >{{ ultrans('custom.precept') }}</a>
+                                </li>
                             @endif
                             <li>
                             @if ($isAdmin)

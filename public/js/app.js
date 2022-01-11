@@ -60699,6 +60699,27 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 $(function () {
+    if ($('.js-precept').length) {
+        let $btnPrecept = $('.js-precept');
+        let $inputPrecept = $('.js-precept-input');
+
+        $btnPrecept.on('click', function (e) {
+            $inputPrecept.trigger('click');
+        });
+
+        $inputPrecept.change(function() {
+
+            if (this.files && this.files[0]) {
+                let file = this.files[0];
+                if (file.type == 'application/pdf') {
+                    $("#precept_file").remove();
+                    $("#priview-precept .precept-type").addClass('fa fa-file-pdf-o red');
+                    $("#priview-precept .file-name").html(file.name);
+                }
+            }
+        });
+    }
+
     if ($('.js-logo').length) {
         var $button = $('.js-logo');
         var $input = $('.js-logo-input');

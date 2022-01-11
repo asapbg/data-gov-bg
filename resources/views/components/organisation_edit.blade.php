@@ -22,6 +22,27 @@
                 <div class="error">{{ $errors->first('logo') }}</div>
             </div>
         </div>
+        @if(\Auth::user()->is_admin)
+        <div class="form-group row">
+            <label class="col-sm-3 col-xs-12 col-form-label">{{ __('custom.precept') }}:</label>
+            <div class="col-sm-9">
+                <div class="inline-block choose-precept">
+                    <span class="badge badge-pill"><label class="js-precept" for="precept">{{ uctrans('custom.select_precept') }}</label></span>
+                    <input class="hidden js-precept-input" type="file" name="precept" value="">
+                    @if($model['precept'])
+                        <a href="{{ $model['precept']['path'] }}" target="_blank" id="precept_file">
+                            <i class="fa fa-file-pdf-o red"></i> {{ $model['precept']['name'] }}
+                        </a>
+                    @endif
+                    <span id="priview-precept">
+                        <i class="precept-type"></i>
+                        <span class="file-name"></span>
+                    </span>
+                </div>
+                <div class="error">{{ $errors->first('precept') }}</div>
+            </div>
+        </div>
+        @endif
         <div class="form-group row {{ !empty($errors->parent_org_id) ? 'has-error' : '' }}">
             <label for="baseOrg" class="col-sm-3 col-xs-12 col-form-label">{{ __('custom.main_organisation') }}:</label>
             <div class="col-sm-9">

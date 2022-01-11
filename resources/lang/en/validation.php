@@ -122,6 +122,7 @@ return [
         'period_from' => 'period from',
         'period_to' => 'period to',
         'username' => 'username',
+        'precept' => 'Precept',
         'module' => 'module',
         'action' => 'action',
         'category_ids' => 'category ids',

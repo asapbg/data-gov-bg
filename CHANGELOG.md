@@ -13,6 +13,14 @@ Security - in case of vulnerabilities.
 
 ## [Unreleased] - XXXX-XX-XX
 
+## [1.4.9] - 2022-01-11
+### Added
+- Organisation precept pdf file upload
+
+## [1.4.8] - 2022-01-07
+### Changed
+- Dataset searches by uri
+
 ## [1.4.7] - 2021-11-18
 ### Fixed
 - Publish dataset with recourses of type zip

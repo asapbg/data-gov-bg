@@ -199,6 +199,8 @@ return [
   'group_registration' => 'Добавяне на група',
   'image' => 'Изображение',
   'select_image' => 'избери изображение',
+  'precept' => 'Заповед',
+  'select_precept' => 'избери заповед',
   'label_name' => 'Наименование',
   'create_group' => 'Създаване на група',
   'org_name' => 'Име на организация',

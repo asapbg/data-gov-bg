@@ -199,6 +199,8 @@ return [
   'group_registration' => 'Register a group',
   'image' => 'Image',
   'select_image' => 'select image',
+  'precept' => 'Precept',
+  'select_precept' => 'select precept',
   'label_name' => 'Name',
   'create_group' => 'Create group',
   'org_name' => 'Organisation name',

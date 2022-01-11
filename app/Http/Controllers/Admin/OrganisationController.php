@@ -14,6 +14,7 @@ use App\Organisation;
 use App\CustomSetting;
 use App\ActionsHistory;
 use App\ElasticDataSet;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -244,6 +245,7 @@ class OrganisationController extends AdminController
             return redirect('/admin/organisations');
         }
 
+
         $query = Organisation::select('id', 'name')->where('type', '!=', Organisation::TYPE_GROUP);
 
         $parentOrgs = $query->get();
@@ -251,6 +253,7 @@ class OrganisationController extends AdminController
         $orgModel = Organisation::with('CustomSetting')->find($org->id)->loadTranslations();
         $customModel = CustomSetting::where('org_id', $orgModel->id)->get()->loadTranslations();
         $orgModel->logo = $this->getImageData($orgModel->logo_data, $orgModel->logo_mime_type);
+        $orgModel->precept = Organisation::getPreceptFile($uri);
         $root = 'admin';
 
         $viewData = [
@@ -510,6 +513,40 @@ class OrganisationController extends AdminController
         }
 
         return view('admin/addOrgMembersNew', compact('class', 'error', 'digestFreq', 'invMail', 'roles', 'organisation'));
+    }
+
+    /**
+     *  Get organisation's precept file if one is uploaded and view link
+     *
+     */
+    public function percept($uri)
+    {
+      $locale = \LaravelLocalization::getCurrentLocale();
+
+      $params = [
+        'org_uri'   => $uri,
+        'locale'    => $locale
+      ];
+
+      $rq = Request::create('/api/getOrganisationDetails', 'POST', $params);
+      $api = new ApiOrganisation($rq);
+      $result = $api->getOrganisationDetails($rq)->getData();
+
+      if ($result->success && !empty($result->data)) {
+
+        $precept = Organisation::getPreceptFile($uri);
+
+        return view(
+          'user/orgPrecept',
+          [
+            'precept'        => $precept,
+            'organisation'   => $result->data
+          ]
+        );
+      }
+
+      return redirect('admin/organisations');
+
     }
 
     public function chronology(Request $request, $uri)
