@@ -13,6 +13,10 @@ Security - in case of vulnerabilities.
 
 ## [Unreleased] - XXXX-XX-XX
 
+## [1.4.10] - 2022-01-12
+### Added
+- Organisations list search criteria - precept pdf file
+
 ## [1.4.9] - 2022-01-11
 ### Added
 - Organisation precept pdf file upload
