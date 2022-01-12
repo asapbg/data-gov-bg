@@ -53,6 +53,10 @@ class OrganisationController extends AdminController
         if (isset($request->approved)) {
             $params['criteria']['approved'] = (bool) $request->approved;
         }
+        
+        if (isset($request->precept)) {
+            $params['criteria']['precept'] = (bool) $request->precept;
+        }
 
         if (isset($request->parent)) {
             $parent = Organisation::where('uri', $request->parent)->first();
@@ -253,7 +257,8 @@ class OrganisationController extends AdminController
         $orgModel = Organisation::with('CustomSetting')->find($org->id)->loadTranslations();
         $customModel = CustomSetting::where('org_id', $orgModel->id)->get()->loadTranslations();
         $orgModel->logo = $this->getImageData($orgModel->logo_data, $orgModel->logo_mime_type);
-        $orgModel->precept = Organisation::getPreceptFile($uri);
+        $orgModel->precept = ($orgModel->precept == Organisation::HAS_PRECEPT_TRUE) ? Organisation::getPreceptFile($uri) : null;
+
         $root = 'admin';
 
         $viewData = [

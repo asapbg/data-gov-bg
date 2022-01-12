@@ -539,6 +539,8 @@ return [
   'approved_side' => 'Одобрени',
   'show_active' => 'Покажи активни',
   'hide_active' => 'Скрий активни',
+  'show_with_precept' => 'Покажи със заповед',
+  'show_without_precept' => 'Покажи без заповед',
   'main_org' => 'Главна организация',
   'role_name' => 'Име на роля',
   'by_default' => 'По подразбиране',

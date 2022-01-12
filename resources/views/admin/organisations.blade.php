@@ -39,7 +39,7 @@
         </div>
 
         <div class="row">
-            @include('partials.admin-sidebar', ['action' => 'Admin\OrganisationController@list', 'options' => ['active', 'approved', 'parentOrg']])
+            @include('partials.admin-sidebar', ['action' => 'Admin\OrganisationController@list', 'options' => ['active', 'approved', 'precept', 'parentOrg']])
             <div class="col-sm-9 col-xs-12 list-orgs user-orgs">
                 <div class="row mx-auto">
                     <div class="col-xs-12 text-center">

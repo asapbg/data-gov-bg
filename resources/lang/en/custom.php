@@ -537,6 +537,8 @@ return [
   'approved_side' => 'Approved',
   'show_active' => 'Show active',
   'hide_active' => 'Hide active',
+  'show_with_precept' => 'Show with precept',
+  'show_without_precept' => 'Show without precept',
   'main_org' => 'Main organisation',
   'role_name' => 'Role name',
   'by_default' => 'Defaults',

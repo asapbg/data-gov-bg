@@ -28,6 +28,8 @@ class Organisation extends Model implements TranslatableInterface
     const APPROVED_FALSE = 0;
     const APPROVED_TRUE = 1;
 
+    const HAS_PRECEPT_FALSE = 0;
+    const HAS_PRECEPT_TRUE = 1;
     const PRECEPT_DIR = "app/public/organisations";
 
     /**

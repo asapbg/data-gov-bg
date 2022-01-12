@@ -705,6 +705,64 @@
         </ul>
     @endif
 
+    @if (in_array('precept', $options) && \Auth::user()->is_admin)
+        <ul class="nav">
+            <li class="js-show-submenu">
+                <a href="#" class="clicable"><i class="fa fa-angle-down"></i>&nbsp;&nbsp;{{ __('custom.precept') }}</a>
+                <ul class="sidebar-submenu nano m-b-md">
+                    <div class="nano-content">
+                        <li>
+                            <a
+                                href="{{
+                                    action(
+                                        $action,
+                                        array_merge(
+                                            ['precept' => \App\Organisation::HAS_PRECEPT_TRUE],
+                                            array_except(app('request')->input(), ['precept', 'q', 'page'])
+                                        )
+                                    )
+                                }}"
+                                class="{{
+                                    isset(app('request')->input()['precept']) && app('request')->input()['precept']
+                                        ? 'active'
+                                        : ''
+                                }}"
+                            >{{ __('custom.show_with_precept') }}</a>
+                        </li>
+                        <li>
+                            <a
+                                href="{{
+                                    action(
+                                        $action,
+                                        array_merge(
+                                            ['precept' => \App\Organisation::HAS_PRECEPT_FALSE],
+                                            array_except(app('request')->input(), ['precept', 'q', 'page'])
+                                        )
+                                    )
+                                }}"
+                                class="{{
+                                    isset(app('request')->input()['precept']) && !app('request')->input()['precept']
+                                        ? 'active'
+                                        : ''
+                                }}"
+                            >{{ __('custom.show_without_precept') }}</a>
+                        </li>
+                        <li>
+                            <a
+                                href="{{
+                                    action(
+                                        $action,
+                                        array_except(app('request')->input(), ['precept', 'q', 'page'])
+                                    )
+                                }}"
+                            >{{ __('custom.show_all') }}</a>
+                        </li>
+                    </div>
+                </ul>
+            </li>
+        </ul>
+    @endif
+
     @if (in_array('section', $options))
     <ul class="nav">
         <li class="js-show-submenu">

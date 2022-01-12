@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ApiController;
 use Illuminate\Database\QueryException;
+use Symfony\Component\HttpFoundation\File\File;
 
 class OrganisationController extends ApiController
 {
@@ -235,19 +236,24 @@ class OrganisationController extends ApiController
 
                 if (!empty($data['precept']) && Role::isAdmin()) {
 
-                  $file = $data['precept'];
+                    $file = $data['precept'];
 
-                  $fileDir = storage_path(Organisation::PRECEPT_DIR);
-                  if (!file_exists($fileDir) && !is_dir($fileDir)) {
-                    mkdir($fileDir, 0777);
-                  }
+                    $fileDir = storage_path(Organisation::PRECEPT_DIR);
+                    if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                        mkdir($fileDir, 0777);
+                    }
 
-                  $fileDir = $fileDir . DIRECTORY_SEPARATOR . $organisation->uri;
-                  if (!file_exists($fileDir) && !is_dir($fileDir)) {
-                    mkdir($fileDir, 0777);
-                  }
+                    $fileDir = $fileDir . DIRECTORY_SEPARATOR . $organisation->uri;
+                    if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                        mkdir($fileDir, 0777);
+                    }
 
-                  $file->move($fileDir, $file->getClientOriginalName());
+                    $uploadedFile = $file->move($fileDir, $file->getClientOriginalName());
+
+                    if ($uploadedFile instanceof File) {
+                        $organisation->precept = Organisation::HAS_PRECEPT_TRUE;
+                        $organisation->save();
+                    }
 
                 }
 
@@ -448,14 +454,20 @@ class OrganisationController extends ApiController
                       if (file_exists($fileDir)){
                         $rDir = new \RecursiveDirectoryIterator($fileDir, \FilesystemIterator::SKIP_DOTS);
                         $ri = new \RecursiveIteratorIterator($rDir);
-                        foreach ($ri as $currentFile) {
-                          if ($currentFile->isFile()) {
-                            unlink($currentFile);
+                        if (!empty($ri)) {
+                          foreach ($ri as $currentFile) {
+                            if ($currentFile->isFile()) {
+                              unlink($currentFile);
+                            }
                           }
                         }
                       }
 
-                      $file->move($fileDir, $file->getClientOriginalName());
+                      $uploadedFile = $file->move($fileDir, $file->getClientOriginalName());
+
+                      if ($uploadedFile instanceof File) {
+                        $orgData['precept'] = Organisation::HAS_PRECEPT_TRUE;
+                      }
 
                     }
 
@@ -662,6 +674,10 @@ class OrganisationController extends ApiController
 
                 if (isset($request->criteria['approved'])) {
                     $criteria['approved'] = $request->criteria['approved'];
+                }
+                
+                if (isset($request->criteria['precept'])) {
+                    $criteria['precept'] = $request->criteria['precept'];
                 }
             } else {
                 $criteria['active'] = 1;
