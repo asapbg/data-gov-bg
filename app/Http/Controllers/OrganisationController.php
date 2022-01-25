@@ -818,16 +818,16 @@ class OrganisationController extends Controller
         $filesResCount = isset($filesCount->filesCount) ? $filesCount->filesCount : 0;
 
         $formatsLimits = [];
-        if($resCount > 0) {
+        if ($resCount > 0) {
           $onlyZipFiles = true;
           foreach ($resources as $resource) {
-            if(!$resource->file_format) continue;
-            if($resource->file_format != Resource::getFormats()[Resource::FORMAT_ZIP]) {
+            if (!$resource->file_format) continue;
+            if ($resource->file_format != Resource::getFormats()[Resource::FORMAT_ZIP]) {
               $onlyZipFiles = false;
             }
-            if($resource->file_format) {
+            if ($resource->file_format) {
               foreach (Resource::FORMAT_LIMITS[$resource->file_format] as $limit) {
-                if(!in_array($limit, $formatsLimits)){
+                if (!in_array($limit, $formatsLimits)){
                   $formatsLimits[] = $limit;
                 }
               }
@@ -1122,6 +1122,10 @@ class OrganisationController extends Controller
             $apiConvert = new ApiConversion($reqConvert);
             $resultConvert = $apiConvert->$method($reqConvert)->getData();
             $data = isset($resultConvert->data) ? $resultConvert->data : [];
+          }
+
+          if (is_object($data) && property_exists($data,'csvData')) {
+            $data = $data->csvData;
           }
 
           $userData = [];

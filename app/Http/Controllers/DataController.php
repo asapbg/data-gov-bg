@@ -703,15 +703,15 @@ class DataController extends Controller {
       $filesResCount = isset($filesCount->filesCount) ? $filesCount->filesCount : 0;
 
       $formatsLimits = [];
-      if($resCount > 0) {
+      if ($resCount > 0) {
         $onlyZipFiles = true;
         foreach ($resources as $resource) {
-          if($resource->file_format != Resource::getFormats()[Resource::FORMAT_ZIP]) {
+          if ($resource->file_format != Resource::getFormats()[Resource::FORMAT_ZIP]) {
             $onlyZipFiles = false;
           }
-          if($resource->file_format) {
+          if ($resource->file_format) {
             foreach (Resource::FORMAT_LIMITS[$resource->file_format] as $limit) {
-              if(!in_array($limit, $formatsLimits)){
+              if (!in_array($limit, $formatsLimits)){
                 $formatsLimits[] = $limit;
               }
             }
@@ -1793,6 +1793,24 @@ class DataController extends Controller {
       $filesCount = $apiFilesResources->checkForFilesResources($rqFiles)->getData();
       $filesResCount = isset($filesCount->filesCount) ? $filesCount->filesCount : 0;
 
+      $formatsLimits = [];
+      if($resCount > 0) {
+        $onlyZipFiles = true;
+        foreach ($resources as $resource) {
+          if($resource->file_format != Resource::getFormats()[Resource::FORMAT_ZIP]) {
+            $onlyZipFiles = false;
+          }
+          if($resource->file_format) {
+            foreach (Resource::FORMAT_LIMITS[$resource->file_format] as $limit) {
+              if(!in_array($limit, $formatsLimits)){
+                $formatsLimits[] = $limit;
+              }
+            }
+          }
+        }
+        $formatsLimits['onlyZipFiles'] = $onlyZipFiles;
+      }
+
       // Get category details
       if (!empty($dataset->category_id)) {
         $params = [
@@ -1935,6 +1953,7 @@ class DataController extends Controller {
           'dataset'       => $dataset,
           'resources'     => $resources,
           'filesResCount' => $filesResCount,
+          'formatsLimits' => $formatsLimits,
           'formats'       => $formats,
           'buttons'       => $buttons,
           'groups'        => $groups,

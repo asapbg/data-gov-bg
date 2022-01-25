@@ -3,20 +3,18 @@
 namespace App\Console\Commands;
 
 use App\User;
-use App\Module;
 use App\Resource;
 use Carbon\Carbon;
 use App\DataQuery;
 use App\ActionsHistory;
-use App\ConnectionSetting;
 use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Artisan;
-use App\Http\Controllers\ToolController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\Api\ResourceController as ApiResource;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 class ApiResourceSendPending extends Command
 {
@@ -81,13 +79,21 @@ class ApiResourceSendPending extends Command
 
                 $response = ResourceController::addMetadata($resource->uri, $data, null, true, false);
 
-                if (isset($response['success'])) {
+                if (
+                  isset($response['success'])
+                  && $response['success']
+                  && isset($response['uri'])
+                  && isset($response['data'])
+                  && isset($response['extension'])
+                ) {
+
                     $reqElastic = Request::create(
                         '/updateResourceData',
                         'POST',
                         [
-                            'resource_uri' => $response['uri'],
-                            'data'         => $response['data'],
+                            'resource_uri'      => $response['uri'],
+                            'data'              => $response['data'],
+                            'extension_format'  => $response['extension'],
                         ]
                     );
 
@@ -107,6 +113,9 @@ class ApiResourceSendPending extends Command
                     }
                 } else {
                     $errorCount++;
+                    $monolog = Log::getMonolog();
+                    $monolog->pushHandler(new StreamHandler(storage_path('logs/info.log'), Logger::INFO, false));
+                    $monolog->info('API resource send pending; Missing required parameter; Response:'.json_encode($response).' Resource Data: '.json_encode($data));
                 }
             }
         }

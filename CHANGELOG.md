@@ -13,6 +13,11 @@ Security - in case of vulnerabilities.
 
 ## [Unreleased] - XXXX-XX-XX
 
+## [1.4.11] - 2022-01-25
+### Fixed
+- Datasets with only zip files resources
+- Resource type API automatic update
+
 ## [1.4.10] - 2022-01-12
 ### Added
 - Organisations list search criteria - precept pdf file

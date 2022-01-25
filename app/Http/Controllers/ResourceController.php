@@ -31,8 +31,8 @@ class ResourceController extends Controller
     if (Auth::check()) {
       $apiKey = Auth::user()->api_key;
       $metadata = [
-        'api_key'   => $apiKey,
-        'data'      => $resourceData,
+        'api_key' => $apiKey,
+        'data' => $resourceData,
       ];
 
       if ($isUpdate) {
@@ -78,15 +78,15 @@ class ResourceController extends Controller
         }
 
         curl_setopt_array($ch, [
-          CURLOPT_HTTPHEADER      => $reqHeaders,
-          CURLOPT_RETURNTRANSFER  => true,
-          CURLOPT_TIMEOUT         => 60,
-          CURLOPT_URL             => $resourceData['resource_url'],
+          CURLOPT_HTTPHEADER => $reqHeaders,
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_TIMEOUT => 60,
+          CURLOPT_URL => $resourceData['resource_url'],
         ]);
 
         $responseHeaders = [];
         // This function is called by curl for each header received
-        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $header) use (&$responseHeaders) {
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
           $length = strlen($header);
           $header = explode(':', $header, 2);
 
@@ -110,13 +110,21 @@ class ResourceController extends Controller
 
         $extension = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 
-        curl_close($ch);
 
         if ($resp) {
           $content = $resp;
         } else {
+
+          $monolog = Log::getMonolog();
+          $monolog->pushHandler(new StreamHandler(storage_path('logs/info.log'), Logger::INFO, false));
+          $monolog->info('No response from curl_exec: Curl error is: ' . curl_error($ch));
+
+          curl_close($ch);
+
           return compact('errors', 'success');
         }
+
+        curl_close($ch);
 
         $extension = substr($extension, strpos($extension, '/') + 1);
 
@@ -131,7 +139,7 @@ class ResourceController extends Controller
 
       if ($changeMeta) {
         $apiFunction = $isUpdate ? 'editResourceMetadata' : 'addResourceMetadata';
-        $savePost = Request::create('/api/'. $apiFunction, 'POST', $metadata);
+        $savePost = Request::create('/api/' . $apiFunction, 'POST', $metadata);
         $api = new ApiResource($savePost);
         $result = $api->$apiFunction($savePost)->getData();
       }
@@ -142,29 +150,28 @@ class ResourceController extends Controller
         if (in_array($metadata['data']['type'], [Resource::TYPE_HYPERLINK, Resource::TYPE_AUTO])) {
           $success = true;
         } else if (!empty($extension)) {
-          if(strtolower($extension) == "zip") {
+          if (strtolower($extension) == "zip") {
             $data['zip'] = "zip";
 
             $zipDir = "../storage/app/files";
-            if(!file_exists($zipDir) && !is_dir($zipDir)) {
+            if (!file_exists($zipDir) && !is_dir($zipDir)) {
               mkdir($zipDir, 0777);
             }
 
             $zipDir = "../storage/app/files/$uri";
-            if(!file_exists($zipDir) && !is_dir($zipDir)) {
+            if (!file_exists($zipDir) && !is_dir($zipDir)) {
               mkdir($zipDir, 0777);
             }
 
             $file->move($zipDir, $file->getClientOriginalName());
 
             $success = true;
-          }
-          else {
+          } else {
             $data = self::callConversions($apiKey, $extension, $content, $uri);
           }
         }
 
-        if (Session::has('elasticData.'. $uri)) {
+        if (Session::has('elasticData.' . $uri)) {
           $success = true;
         }
       } else {
@@ -180,15 +187,15 @@ class ResourceController extends Controller
     $data = [];
 
     $convertData = [
-      'api_key'   => $apiKey,
-      'data'      => $content,
+      'api_key' => $apiKey,
+      'data' => $content,
     ];
 
     $extension = strtolower($extension);
 
     switch ($extension) {
       case 'json':
-        Session::put('elasticData.'. $resourceUri, json_decode($content, true));
+        Session::put('elasticData.' . $resourceUri, json_decode($content, true));
 
         if (is_array(json_decode($content, true))) {
           $data = json_decode($content, true);
@@ -203,7 +210,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
           $data['tsvData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -218,7 +225,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
           $data['xsdData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -233,7 +240,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
           $data['odsData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -248,7 +255,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
           $data['slkData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -263,7 +270,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, [$elasticData]);
+          Session::put('elasticData.' . $resourceUri, [$elasticData]);
           $data['rtfData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -278,7 +285,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, [$elasticData]);
+          Session::put('elasticData.' . $resourceUri, [$elasticData]);
           $data['odtData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -292,7 +299,7 @@ class ResourceController extends Controller
 
         if ($resultConvert->success) {
           $elasticData = $resultConvert->data;
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
           $data['csvData'] = $elasticData;
         } else {
           $data['error'] = $resultConvert->error->message;
@@ -313,14 +320,14 @@ class ResourceController extends Controller
 
         if ($resultConvert['success']) {
           $elasticData = $resultConvert['data'];
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
 
           if (is_xml_excel_exported($content)) {
             $metadata = [
-              'api_key'       => $apiKey,
-              'resource_uri'  => $resourceUri,
-              'data'          => [
-                'file_format'   => 'CSV',
+              'api_key' => $apiKey,
+              'resource_uri' => $resourceUri,
+              'data' => [
+                'file_format' => 'CSV',
               ],
             ];
             $editRequest = Request::create('/api/editResourceMetadata', 'POST', $metadata);
@@ -341,28 +348,28 @@ class ResourceController extends Controller
 
         break;
       case 'kml':
-        $method = $extension .'2json';
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $method = $extension . '2json';
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
           $elasticData = $resultConvert['data'];
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
         } else {
           $data['error'] = $resultConvert['error']['message'];
         }
 
         break;
       case 'rdf':
-        $method = $extension .'2json';
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $method = $extension . '2json';
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
           $elasticData = $resultConvert['data'];
-          Session::put('elasticData.'. $resourceUri, $elasticData);
+          Session::put('elasticData.' . $resourceUri, $elasticData);
           $data['xmlData'] = $content;
         } else {
           $data['error'] = $resultConvert['error']['message'];
@@ -370,14 +377,14 @@ class ResourceController extends Controller
 
         break;
       case 'pdf':
-        $method = $extension .'2json';
+        $method = $extension . '2json';
         $convertData['data'] = base64_encode($convertData['data']);
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
-          Session::put('elasticData.'. $resourceUri, ['text' => $resultConvert['data']]);
+          Session::put('elasticData.' . $resourceUri, ['text' => $resultConvert['data']]);
           $data['text'] = $resultConvert['data'];
         } else {
           $data['error'] = $resultConvert['error']['message'];
@@ -388,12 +395,12 @@ class ResourceController extends Controller
       case 'docx':
         $method = 'doc2json';
         $convertData['data'] = base64_encode($convertData['data']);
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
-          Session::put('elasticData.'. $resourceUri, ['text' => $resultConvert['data']]);
+          Session::put('elasticData.' . $resourceUri, ['text' => $resultConvert['data']]);
           $data['text'] = $resultConvert['data'];
         } else {
           $data['error'] = $resultConvert['error']['message'];
@@ -404,12 +411,12 @@ class ResourceController extends Controller
       case 'xlsx':
         $method = 'xls2json';
         $convertData['data'] = base64_encode($convertData['data']);
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
-          Session::put('elasticData.'. $resourceUri, $resultConvert['data']);
+          Session::put('elasticData.' . $resourceUri, $resultConvert['data']);
           $data['csvData'] = $resultConvert['data'];
         } else {
           $data['error'] = $resultConvert['error']['message'];
@@ -417,19 +424,19 @@ class ResourceController extends Controller
 
         break;
       case 'txt':
-        Session::put('elasticData.'. $resourceUri, ['text' => $convertData['data']]);
+        Session::put('elasticData.' . $resourceUri, ['text' => $convertData['data']]);
 
         $data['text'] = $convertData['data'];
 
         break;
       case 'html':
         $method = 'html2json';
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
-          Session::put('elasticData.'. $resourceUri, ['text' => $resultConvert['data']]);
+          Session::put('elasticData.' . $resourceUri, ['text' => $resultConvert['data']]);
           $data['text'] = $resultConvert['data'];
         } else {
           $data['error'] = $resultConvert['error']['message'];
@@ -439,12 +446,12 @@ class ResourceController extends Controller
       default:
         $method = 'img2json';
         $convertData['data'] = base64_encode($convertData['data']);
-        $reqConvert = Request::create('/'. $method, 'POST', $convertData);
+        $reqConvert = Request::create('/' . $method, 'POST', $convertData);
         $api = new ApiConversion($reqConvert);
         $resultConvert = $api->$method($reqConvert)->getData(true);
 
         if ($resultConvert['success']) {
-          Session::put('elasticData.'. $resourceUri, ['text' => $resultConvert['data']]);
+          Session::put('elasticData.' . $resourceUri, ['text' => $resultConvert['data']]);
           $data['text'] = $resultConvert['data'];
         } else {
           $data['error'] = $resultConvert['error']['message'];
@@ -467,8 +474,8 @@ class ResourceController extends Controller
       $root = Role::isAdmin() ? 'admin' : 'user';
       $uri = $request->offsetGet('resource_uri');
       $action = $request->offsetGet('action');
-      $elasticData = Session::get('elasticData.'. $uri);
-      Session::forget('elasticData.'. $uri);
+      $elasticData = Session::get('elasticData.' . $uri);
+      Session::forget('elasticData.' . $uri);
       $filtered = [];
       $extensionFormat = $request->extensionFormat;
 
@@ -486,13 +493,13 @@ class ResourceController extends Controller
 
       if (!empty($filtered)) {
         $saveData = [
-          'resource_uri'     => $uri,
-          'data'             => $filtered,
+          'resource_uri' => $uri,
+          'data' => $filtered,
           'extension_format' => $extensionFormat
         ];
 
         $apiFunction = $action == 'create' ? 'addResourceData' : 'updateResourceData';
-        $reqElastic = Request::create('/'. $apiFunction, 'POST', $saveData);
+        $reqElastic = Request::create('/' . $apiFunction, 'POST', $saveData);
         $api = new ApiResource($reqElastic);
         $resultElastic = $api->$apiFunction($reqElastic)->getData();
 
@@ -505,16 +512,16 @@ class ResourceController extends Controller
           if ($request->has('org_uri')) {
             $orgUri = $request->offsetGet('org_uri');
 
-            return redirect('/'. $root .'/organisations/'. $orgUri .'/resource/'. $uri);
+            return redirect('/' . $root . '/organisations/' . $orgUri . '/resource/' . $uri);
           }
 
           if ($request->has('group_uri')) {
             $groupUri = $request->offsetGet('group_uri');
 
-            return redirect('/'. $root .'/groups/'. $groupUri .'/resource/'. $uri);
+            return redirect('/' . $root . '/groups/' . $groupUri . '/resource/' . $uri);
           }
 
-          return redirect('/'. $root .'/resource/view/'. $uri);
+          return redirect('/' . $root . '/resource/view/' . $uri);
         }
 
         $request->session()->flash('alert-danger', $resultElastic->error->message);
@@ -550,19 +557,19 @@ class ResourceController extends Controller
       $root = Role::isAdmin() ? 'admin' : 'user';
       $uri = $request->offsetGet('resource_uri');
       $action = $request->offsetGet('action');
-      $elasticData = Session::get('elasticData.'. $uri);
-      Session::forget('elasticData.'. $uri);
+      $elasticData = Session::get('elasticData.' . $uri);
+      Session::forget('elasticData.' . $uri);
       $extensionFormat = $request->extensionFormat;
 
       if (!empty($elasticData)) {
         $saveData = [
-          'resource_uri'     => $uri,
-          'data'             => $elasticData,
+          'resource_uri' => $uri,
+          'data' => $elasticData,
           'extension_format' => $extensionFormat
         ];
 
         $apiFunction = $action == 'create' ? 'addResourceData' : 'updateResourceData';
-        $reqElastic = Request::create('/'. $apiFunction, 'POST', $saveData);
+        $reqElastic = Request::create('/' . $apiFunction, 'POST', $saveData);
         $api = new ApiResource($reqElastic);
         $resultElastic = $api->$apiFunction($reqElastic)->getData();
 
@@ -575,16 +582,16 @@ class ResourceController extends Controller
           if ($request->has('org_uri')) {
             $orgUri = $request->offsetGet('org_uri');
 
-            return redirect('/'. $root .'/organisations/'. $orgUri .'/resource/'. $uri);
+            return redirect('/' . $root . '/organisations/' . $orgUri . '/resource/' . $uri);
           }
 
           if ($request->has('group_uri')) {
             $groupUri = $request->offsetGet('group_uri');
 
-            return redirect('/'. $root .'/groups/'. $groupUri .'/resource/'. $uri);
+            return redirect('/' . $root . '/groups/' . $groupUri . '/resource/' . $uri);
           }
 
-          return redirect('/'. $root .'/resource/view/'. $uri);
+          return redirect('/' . $root . '/resource/view/' . $uri);
         }
 
         $request->session()->flash('alert-danger', $resultElastic->error->message);
@@ -619,14 +626,14 @@ class ResourceController extends Controller
     $fileName = $request->offsetGet('name');
     $fileName = str_replace(['\\', '/'], '_', $fileName);
 
-    $resourceId = (int) $request->offsetGet('resource');
-    $version = (int) $request->offsetGet('version');
+    $resourceId = (int)$request->offsetGet('resource');
+    $version = (int)$request->offsetGet('version');
     $format = $request->offsetGet('format');
     $data = ElasticDataSet::getElasticData($resourceId, $version);
 
     if (strtolower($format) != 'json') {
-      $method = 'json2'. strtolower($format);
-      $convertReq = Request::create('/api/'. $method, 'POST', ['data' => $data]);
+      $method = 'json2' . strtolower($format);
+      $convertReq = Request::create('/api/' . $method, 'POST', ['data' => $data]);
       $apiResources = new ApiConversion($convertReq);
       $resource = $apiResources->$method($convertReq)->getData();
 
@@ -641,16 +648,16 @@ class ResourceController extends Controller
 
     if (!empty($fileData)) {
       $tmpFileName = str_random(32);
-      $handle = fopen('../storage/app/'. $tmpFileName, 'w+');
+      $handle = fopen('../storage/app/' . $tmpFileName, 'w+');
       $path = stream_get_meta_data($handle)['uri'];
 
       fwrite($handle, $fileData);
 
       fclose($handle);
 
-      $headers = ['Content-Type' => 'text/'. strtolower($format)];
+      $headers = ['Content-Type' => 'text/' . strtolower($format)];
 
-      return response()->download($path, $fileName .'.'. strtolower($format), $headers)->deleteFileAfterSend(true);
+      return response()->download($path, $fileName . '.' . strtolower($format), $headers)->deleteFileAfterSend(true);
     }
 
     return back();
@@ -667,32 +674,32 @@ class ResourceController extends Controller
   {
     $uri = $request->offsetGet('uri');
     $zipDir = "../storage/app/files/$uri";
-    $zipFile = glob($zipDir.DIRECTORY_SEPARATOR."*");
-    if(empty($zipFile)) {
+    $zipFile = glob($zipDir . DIRECTORY_SEPARATOR . "*");
+    if (empty($zipFile)) {
       $request->session()->flash('alert-danger', __('custom.zip_download_error'));
       return redirect()->back()->withInput();
     }
     $zipNameExpl = explode("/", $zipFile[0]);
     $zipName = end($zipNameExpl);
 
-    if(file_exists($zipDir.DIRECTORY_SEPARATOR.$zipName)) {
+    if (file_exists($zipDir . DIRECTORY_SEPARATOR . $zipName)) {
       $monolog = Log::getMonolog();
       $monolog->pushHandler(new StreamHandler(storage_path('logs/info.log'), Logger::INFO, false));
-      $monolog->info("Download file $zipName from folder $zipDir from server {$_SERVER['SERVER_NAME']}; User ip:".request()->ip().'; Url: '.request()->getPathInfo());
+      $monolog->info("Download file $zipName from folder $zipDir from server {$_SERVER['SERVER_NAME']}; User ip:" . request()->ip() . '; Url: ' . request()->getPathInfo());
 
       header('Content-Description: File Transfer');
       header('Content-Type: application/zip');
-      header('Content-disposition: attachment; filename='.@basename($zipName));
+      header('Content-disposition: attachment; filename=' . @basename($zipName));
       header('Expires: 0');
       header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
       header('Pragma: public');
-      header('Content-Length: ' .@filesize($zipDir.DIRECTORY_SEPARATOR.$zipName));
+      header('Content-Length: ' . @filesize($zipDir . DIRECTORY_SEPARATOR . $zipName));
 
-      if(ob_get_level()){
+      if (ob_get_level()) {
         ob_end_clean();
       }
 
-      readfile($zipDir.DIRECTORY_SEPARATOR.$zipName);
+      readfile($zipDir . DIRECTORY_SEPARATOR . $zipName);
     }
   }
 
@@ -711,7 +718,7 @@ class ResourceController extends Controller
 
     $params = [
       'resource_uri' => $uri,
-      'locale'  => $locale
+      'locale' => $locale
     ];
     $rq = Request::create('/api/getResourceMetadata', 'POST', $params);
     $api = new ApiResource($rq);
@@ -725,8 +732,8 @@ class ResourceController extends Controller
     $data = ElasticDataSet::getElasticData($resourceId, $version);
 
     if (strtolower($format) != 'json') {
-      $method = 'json2'. strtolower($format);
-      $convertReq = Request::create('/api/'. $method, 'POST', ['data' => $data]);
+      $method = 'json2' . strtolower($format);
+      $convertReq = Request::create('/api/' . $method, 'POST', ['data' => $data]);
       $apiResources = new ApiConversion($convertReq);
       $resource = $apiResources->$method($convertReq)->getData();
 
@@ -741,16 +748,16 @@ class ResourceController extends Controller
 
     if (!empty($fileData)) {
       $tmpFileName = str_random(32);
-      $handle = fopen('../storage/app/'. $tmpFileName, 'w+');
+      $handle = fopen('../storage/app/' . $tmpFileName, 'w+');
       $path = stream_get_meta_data($handle)['uri'];
 
       fwrite($handle, $fileData);
 
       fclose($handle);
 
-      $headers = ['Content-Type' => 'text/'. strtolower($format)];
+      $headers = ['Content-Type' => 'text/' . strtolower($format)];
 
-      return response()->download($path, $fileName .'.'. strtolower($format), $headers)->deleteFileAfterSend(true);
+      return response()->download($path, $fileName . '.' . strtolower($format), $headers)->deleteFileAfterSend(true);
     }
 
     return back();
@@ -770,7 +777,7 @@ class ResourceController extends Controller
 
     $zipName = "$uri.zip";
     $zipDir = "../storage/app/$uri";
-    if(!file_exists($zipDir) && !is_dir($zipDir)) {
+    if (!file_exists($zipDir) && !is_dir($zipDir)) {
       mkdir($zipDir, 0777);
     }
 
@@ -779,7 +786,7 @@ class ResourceController extends Controller
         'dataset_uri' => $uri
       ]
     ];
-    $params['resource_type'] = [Resource::TYPE_FILE,Resource::TYPE_API];
+    $params['resource_type'] = [Resource::TYPE_FILE, Resource::TYPE_API];
     $params['query_for_zip'] = true;
 
     $rq = Request::create('/api/listResources', 'POST', $params);
@@ -787,7 +794,7 @@ class ResourceController extends Controller
     $res = $apiResources->listResources($rq)->getData();
     $resources = !empty($res->resources) ? $res->resources : [];
 
-    if(!empty($resources)) {
+    if (!empty($resources)) {
 
       try {
 
@@ -796,7 +803,7 @@ class ResourceController extends Controller
 
         foreach ($resources as $key => $resource) {
 
-          if($resource->file_format == Resource::getFormats()[Resource::FORMAT_ZIP]) {
+          if ($resource->file_format == Resource::getFormats()[Resource::FORMAT_ZIP]) {
             $zipDirResource = "../storage/app/files/$resource->uri";
             $zipFileName = Resource::getResourceZipFile($resource->uri);
             $zipResources[$key]['dir'] = $zipDirResource;
@@ -808,19 +815,19 @@ class ResourceController extends Controller
           $resourceId = $resource->id;
           $checkName = (mb_strlen($resource->name) > 130) ? mb_substr($resource->name, 0, 130, "utf-8") : $resource->name;
           $fileName = str_replace(['\\', '/'], '_', $checkName);
-          if(file_exists($zipDir.DIRECTORY_SEPARATOR.$fileName)) {
+          if (file_exists($zipDir . DIRECTORY_SEPARATOR . $fileName)) {
             continue;
           }
           $version = $resource->version;
 
           $data = ElasticDataSet::getElasticData($resourceId, $version);
-          if(empty($data)) {
+          if (empty($data)) {
             continue;
           }
 
           if (strtolower($format) != 'json') {
-            $method = 'json2'. strtolower($format);
-            $convertReq = Request::create('/api/'. $method, 'POST', ['data' => $data]);
+            $method = 'json2' . strtolower($format);
+            $convertReq = Request::create('/api/' . $method, 'POST', ['data' => $data]);
             $apiResources = new ApiConversion($convertReq);
             $resource = $apiResources->$method($convertReq)->getData();
 
@@ -835,7 +842,7 @@ class ResourceController extends Controller
 
           if (!empty($fileData)) {
 
-            $handle = fopen($zipDir.DIRECTORY_SEPARATOR.$fileName, 'w+');
+            $handle = fopen($zipDir . DIRECTORY_SEPARATOR . $fileName, 'w+');
 
             fwrite($handle, $fileData);
 
@@ -843,19 +850,19 @@ class ResourceController extends Controller
           }
         }
 
-        if(!file_exists($zipDir.DIRECTORY_SEPARATOR.$zipName)) {
+        if (!file_exists($zipDir . DIRECTORY_SEPARATOR . $zipName)) {
 
-          $files = glob($zipDir.DIRECTORY_SEPARATOR."*");
+          $files = glob($zipDir . DIRECTORY_SEPARATOR . "*");
           $zip = new \ZipArchive;
-          if ($zip->open($zipDir.DIRECTORY_SEPARATOR.$zipName, \ZipArchive::CREATE) === TRUE) {
+          if ($zip->open($zipDir . DIRECTORY_SEPARATOR . $zipName, \ZipArchive::CREATE) === TRUE) {
             foreach ($files as $file) {
               $exploded = explode("/", $file);
               $fileName = end($exploded);
-              $zip->addFile($file, $fileName.".".strtolower($format));
+              $zip->addFile($file, $fileName . "." . strtolower($format));
             }
-            if($thereIsResourceZip) {
+            if ($thereIsResourceZip) {
               foreach ($zipResources as $zipResource) {
-                $zip->addFile($zipResource['dir'].DIRECTORY_SEPARATOR.$zipResource['name'], $zipResource['name']);
+                $zip->addFile($zipResource['dir'] . DIRECTORY_SEPARATOR . $zipResource['name'], $zipResource['name']);
               }
             }
             $zip->close();
@@ -888,24 +895,24 @@ class ResourceController extends Controller
 
     try {
 
-      if(file_exists($zipDir.DIRECTORY_SEPARATOR.$zipName)) {
+      if (file_exists($zipDir . DIRECTORY_SEPARATOR . $zipName)) {
         $monolog = Log::getMonolog();
         $monolog->pushHandler(new StreamHandler(storage_path('logs/info.log'), Logger::INFO, false));
-        $monolog->info("Download file $zipName from folder $zipDir from server {$_SERVER['SERVER_NAME']}; User ip:".request()->ip().'; Url: '.request()->getPathInfo());
+        $monolog->info("Download file $zipName from folder $zipDir from server {$_SERVER['SERVER_NAME']}; User ip:" . request()->ip() . '; Url: ' . request()->getPathInfo());
 
         header('Content-Description: File Transfer');
         header('Content-Type: application/zip');
-        header('Content-disposition: attachment; filename='.@basename($zipName));
+        header('Content-disposition: attachment; filename=' . @basename($zipName));
         header('Expires: 0');
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         header('Pragma: public');
-        header('Content-Length: ' .@filesize($zipDir.DIRECTORY_SEPARATOR.$zipName));
+        header('Content-Length: ' . @filesize($zipDir . DIRECTORY_SEPARATOR . $zipName));
 
-        if(ob_get_level()){
+        if (ob_get_level()) {
           ob_end_clean();
         }
 
-        readfile($zipDir.DIRECTORY_SEPARATOR.$zipName);
+        readfile($zipDir . DIRECTORY_SEPARATOR . $zipName);
 
         $this->deleteZipFolder($uri);
       }
@@ -929,15 +936,15 @@ class ResourceController extends Controller
   {
     $zipDir = "../storage/app/$uri";
 
-    if(file_exists($zipDir) && is_dir($zipDir)) {
+    if (file_exists($zipDir) && is_dir($zipDir)) {
       if (is_dir($zipDir)) {
         $objects = scandir($zipDir);
         foreach ($objects as $object) {
           if ($object != "." && $object != "..") {
-            if (is_dir($zipDir. DIRECTORY_SEPARATOR .$object) && !is_link($zipDir."/".$object))
-              rrmdir($zipDir. DIRECTORY_SEPARATOR .$object);
+            if (is_dir($zipDir . DIRECTORY_SEPARATOR . $object) && !is_link($zipDir . "/" . $object))
+              rrmdir($zipDir . DIRECTORY_SEPARATOR . $object);
             else
-              unlink($zipDir. DIRECTORY_SEPARATOR .$object);
+              unlink($zipDir . DIRECTORY_SEPARATOR . $object);
           }
         }
         rmdir($zipDir);
@@ -993,7 +1000,7 @@ class ResourceController extends Controller
 
     return [
       'success' => $res->success,
-      'data'    => json_encode($data)
+      'data' => json_encode($data)
     ];
   }
 }
