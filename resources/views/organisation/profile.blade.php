@@ -77,28 +77,28 @@
                                     <img class="img-responsive" src="{{ $organisation->logo }}"/>
                                 </div>
                             @endif
-                            <div>
-                                <div class="col-xs-12 p-l-none">
+                            <div class="row">
+                                <div class="col-xs-12">
                                     <div>
                                         <h3>{{ $organisation->name }} </h3><br/>
                                         <p>{!! nl2br(e($organisation->description)) !!}</p><br/>
                                     </div>
                                 </div>
                                 @if (!empty($organisation->activity_info))
-                                    <div class="col-xs-12 p-l-none">
+                                    <div class="col-xs-12 ">
                                         <span><b>{{ __('custom.activity') }}:</b></span><br/><br/>
                                         <p>{!! nl2br(e($organisation->activity_info)) !!}</p><br/>
                                     </div>
                                 @endif
-                                <div class="col-xs-12 p-l-r-none articles">
+                                <div class="col-xs-12 articles">
                                     @if (!empty($organisation->contacts))
-                                        <div class="col-sm-8 col-xs-12 p-l-none article pull-left">
+                                        <div class="col-xs-12 p-l-none article">
                                             <span><b>{{ __('custom.contact_person') }}:</b></span><br/><br/>
                                             <p>{!! nl2br(e($organisation->contacts)) !!}</p><br/>
                                         </div>
                                     @endif
                                     @if (isset($organisation->custom_fields[0]) && !empty($organisation->custom_fields[0]->key))
-                                        <div class="col-sm-8 col-xs-12 p-l-none article pull-left">
+                                        <div class="col-xs-12 p-l-none article">
                                             <p><b>{{ __('custom.additional_info') }}:</b></p>
                                             @foreach ($organisation->custom_fields as $field)
                                                 <div class="row">
@@ -109,61 +109,63 @@
                                             <br/>
                                         </div>
                                     @endif
-                                    <div class="col-sm-4 col-xs-12 pull-right text-right">
-                                        <form method="post">
-                                            {{ csrf_field() }}
-                                            @if (isset($buttons['follow']) && $buttons['follow'])
-                                                <div class="row">
-                                                    <button
-                                                        class="btn btn-primary pull-right m-r-xs"
-                                                        type="submit"
-                                                        name="follow"
-                                                        value="{{ $organisation->id }}"
-                                                    >{{ utrans('custom.follow') }}</button>
-                                                </div>
-                                            @elseif (isset($buttons['unfollow']) && $buttons['unfollow'])
-                                                <div class="row">
-                                                    <button
-                                                        class="btn btn-primary pull-right"
-                                                        type="submit"
-                                                        name="unfollow"
-                                                        value="{{ $organisation->id }}"
-                                                    >{{ uctrans('custom.stop_follow') }}</button>
-                                                </div>
-                                            @endif
-                                        </form>
+                                </div>
+                            </div>
+                            <div class="row p-h-md">
+                                <div class="col-xs-8 view-btns">
+                                    <div class="row">
+                                        @if (isset($buttons['edit']) && $buttons['edit'])
+                                            <form
+                                                method="POST"
+                                                class="inline-block"
+                                                action="{{ url('/'. $buttons['rootUrl'] .'/organisations/edit/'. $organisation->uri) }}"
+                                            >
+                                                {{ csrf_field() }}
+                                                <button class="btn btn-primary" type="submit">{{ uctrans('custom.edit') }}</button>
+                                                <input type="hidden" name="view" value="1">
+                                            </form>
+                                        @endif
+                                        @if (isset($buttons['delete']) && $buttons['delete'])
+                                            <form
+                                                method="POST"
+                                                class="inline-block"
+                                                action="{{ route('orgDelete', array_except(app('request')->input(), ['page'])) }}"
+                                            >
+                                                {{ csrf_field() }}
+                                                <button
+                                                    class="btn del-btn btn-primary del-btn"
+                                                    type="submit"
+                                                    name="delete"
+                                                    data-confirm="{{ __('custom.delete_organisation_confirm') }}"
+                                                >{{ uctrans('custom.remove') }}</button>
+                                                <input class="user-org-del" type="hidden" name="org_uri" value="{{ $organisation->uri }}">
+                                            </form>
+                                        @endif
                                     </div>
-                                    <div class="col-xs-12 view-btns p-h-md">
-                                        <div class="row">
-                                            @if (isset($buttons['edit']) && $buttons['edit'])
-                                                <form
-                                                    method="POST"
-                                                    class="inline-block"
-                                                    action="{{ url('/'. $buttons['rootUrl'] .'/organisations/edit/'. $organisation->uri) }}"
-                                                >
-                                                    {{ csrf_field() }}
-                                                    <button class="btn btn-primary" type="submit">{{ uctrans('custom.edit') }}</button>
-                                                    <input type="hidden" name="view" value="1">
-                                                </form>
-                                            @endif
-                                            @if (isset($buttons['delete']) && $buttons['delete'])
-                                                <form
-                                                    method="POST"
-                                                    class="inline-block"
-                                                    action="{{ route('orgDelete', array_except(app('request')->input(), ['page'])) }}"
-                                                >
-                                                    {{ csrf_field() }}
-                                                    <button
-                                                        class="btn del-btn btn-primary del-btn"
-                                                        type="submit"
-                                                        name="delete"
-                                                        data-confirm="{{ __('custom.delete_organisation_confirm') }}"
-                                                    >{{ uctrans('custom.remove') }}</button>
-                                                    <input class="user-org-del" type="hidden" name="org_uri" value="{{ $organisation->uri }}">
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </div>
+                                </div>
+                                <div class="col-sm-4 text-right">
+                                    <form method="post">
+                                        {{ csrf_field() }}
+                                        @if (isset($buttons['follow']) && $buttons['follow'])
+                                            <div class="row">
+                                                <button
+                                                    class="btn btn-primary pull-right m-r-xs"
+                                                    type="submit"
+                                                    name="follow"
+                                                    value="{{ $organisation->id }}"
+                                                >{{ utrans('custom.follow') }}</button>
+                                            </div>
+                                        @elseif (isset($buttons['unfollow']) && $buttons['unfollow'])
+                                            <div class="row">
+                                                <button
+                                                    class="btn btn-primary pull-right"
+                                                    type="submit"
+                                                    name="unfollow"
+                                                    value="{{ $organisation->id }}"
+                                                >{{ uctrans('custom.stop_follow') }}</button>
+                                            </div>
+                                        @endif
+                                    </form>
                                 </div>
                             </div>
                         </div>
