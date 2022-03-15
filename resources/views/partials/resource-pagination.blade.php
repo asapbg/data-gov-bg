@@ -5,11 +5,20 @@
                 $resPagination instanceof Illuminate\Pagination\LengthAwarePaginator
                 && !empty($resPagination->items())
             )
+                @php
+                    if($resPagination->onFirstPage()) {
+                        $resPaginationFrom = $resPagination->items()['from'];
+                        $resPaginationTo = $resPagination->items()['to'] - 1;
+                    } else {
+                        $resPaginationFrom = $resPagination->items()['from'] - 1;
+                        $resPaginationTo = $resPagination->items()['to'] - 2;
+                    }
+                @endphp
                 {{ sprintf(
                     __('custom.resource_pagination_info'),
-                    $resPagination->items()['from'],
-                    $resPagination->items()['to'],
-                    $resPagination->total()
+                    $resPaginationFrom,
+                    $resPaginationTo,
+                    $resPagination->total() - 1
                 ) }}
             @endif
         </div>
