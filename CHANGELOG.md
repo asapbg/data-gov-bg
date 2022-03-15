@@ -13,6 +13,10 @@ Security - in case of vulnerabilities.
 
 ## [Unreleased] - XXXX-XX-XX
 
+## [1.4.12] - 2022-03-15
+### Fixed
+- Resources pagination string
+
 ## [1.4.11] - 2022-01-25
 ### Fixed
 - Datasets with only zip files resources
