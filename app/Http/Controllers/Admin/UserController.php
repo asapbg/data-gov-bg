@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Role;
+use App\User;
 use App\UserSetting;
 use App\Organisation;
 use Illuminate\Http\Request;
@@ -68,6 +69,10 @@ class UserController extends AdminController {
 
         if (isset($request->approved)) {
             $params['criteria']['approved'] = (bool) $request->approved;
+        }
+
+        if (isset($request->precept)) {
+            $params['criteria']['precept'] = $request->precept;
         }
 
         $rq = Request::create('/api/listUsers', 'POST', $params);
@@ -196,6 +201,7 @@ class UserController extends AdminController {
                     $orgRoles[0][] = $orgRole->role_id;
                 } else {
                     $orgRoles[$orgRole->org_id][] = $orgRole->role_id;
+                    $ordId = $orgRole->org_id;
                 }
             }
 
@@ -263,6 +269,9 @@ class UserController extends AdminController {
                             'newsletter_digest' => $request->offsetGet('newsletter'),
                             'locale'            => $request->offsetGet('locale'),
                         ],
+                        'precept'       => $request->file('precept'),
+                        'old_org_id' 	=> $request->offsetGet('user_organisation'),
+                        'precept_select' 	=> $request->offsetGet('precept_select')
                     ],
                 ];
 
@@ -325,6 +334,20 @@ class UserController extends AdminController {
                     return redirect()->back()->withInput()->withErrors($error);
                 }
             }
+            //show uploaded file is any
+            if($request->offsetGet('org_id')) {
+                $ordId = $request->offsetGet('org_id');
+            }
+
+            $organisation = Organisation::where('id', $ordId)->first();
+
+            $allPreceptFiles = User::getAllPreceptFiles($organisation->uri);
+
+            $preceptFileName = User::select('precept_file')->where('id', $id)->first();
+
+            if(!is_null($preceptFileName->precept_file)) {
+                $precept = User::getPreceptFile($organisation->uri, $preceptFileName->precept_file);
+            }
 
             return view('admin/userEdit', compact(
                 'class',
@@ -335,7 +358,9 @@ class UserController extends AdminController {
                 'organisations',
                 'roles',
                 'orgRoles',
-                'groups'
+                'groups',
+                'precept',
+                'allPreceptFiles'
             ));
         }
 

@@ -11,6 +11,6 @@
         @endif
 
         @include('partials.org-nav-bar', ['view' => 'orgPrecept', 'organisation' => $organisation])
-        @include('user.precept', compact('organisation', 'precept'))
+        @include('user.precept', compact('organisation', 'precepts'))
     </div>
 @endsection

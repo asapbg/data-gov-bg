@@ -12,7 +12,7 @@
                     <div>
                         <p class='req-fields m-t-lg m-b-lg'>{{ __('custom.all_fields_required') }}</p>
                     </div>
-                    <form method="POST" class="m-t-lg p-sm">
+                    <form method="POST" class="m-t-lg p-sm" enctype="multipart/form-data">
                         {{ csrf_field() }}
 
                         <div class="form-group row required">
@@ -170,6 +170,22 @@
                                 </select>
                             </div>
                         </div>
+                        @if(\Auth::user()->is_admin)
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-xs-12 col-form-label">{{ __('custom.precept') }}:</label>
+                                <div class="col-sm-7">
+                                    <div class="inline-block choose-precept">
+                                        <span class="badge badge-pill"><label class="js-precept" for="precept">{{ uctrans('custom.select_precept') }}</label></span>
+                                        <input class="hidden js-precept-input" type="file" name="precept" value="">
+                                        <span id="priview-precept">
+                                <i class="precept-type"></i>
+                                <span class="file-name"></span>
+                            </span>
+                                    </div>
+                                    <div class="error">{{ $errors->first('precept') }}</div>
+                                </div>
+                            </div>
+                        @endif
                         <div class="form-group row">
                             <label for="is_admin" class="col-lg-2 col-sm-3 col-xs-12 col-form-label">{{ __('custom.admin') }}:</label>
                             <div class="col-lg-2 col-md-9 col-sm-9 col-xs-12">

@@ -7,7 +7,7 @@
         <span class="my-profile m-l-sm">{{ uctrans('custom.users_edit') }}</span>
     </div>
     <div class="col-xs-12 m-t-lg p-l-r-none">
-        <form class="m-t-lg p-w-sm" method="post">
+        <form class="m-t-lg p-w-sm" method="post" enctype="multipart/form-data">
             {{ csrf_field() }}
             <div class="form-group row required">
                 <label for="fname" class="col-sm-3 col-xs-12 col-form-label">{{ uctrans('custom.name') }}:</label>
@@ -122,6 +122,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-xs-12 col-form-label">{{ uctrans('custom.organisations') }}: </label>
                             <span class="col-sm-3 col-xs-12">{{ $organisations[$org]->name }} </span>
+                            <input class="hidden" type="text" name="user_organisation" value="{{ $organisations[$org]->id }}">
                             <label for="role[{{ $org }}]" class="col-sm-1 col-xs-12 col-form-label">{{ __('custom.roles') }}: </label>
                             <div class="col-sm-3">
                                 <select
@@ -165,6 +166,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-xs-12 col-form-label">{{ trans_choice(utrans('custom.groups'), 1) }}: </label>
                             <span class="col-sm-3 col-xs-12">{{ $groups[$org]->name }} </span>
+                            <input class="hidden" type="text" name="user_organisation" value="{{ $organisations[$org]->id }}">
                             <label for="role[{{ $org }}]" class="col-sm-1 col-xs-12 col-form-label">{{ __('custom.roles') }}: </label>
                             <div class="col-sm-3">
                                 <select
@@ -245,6 +247,38 @@
                     </select>
                 </div>
             </div>
+            @if(\Auth::user()->is_admin)
+                <div class="form-group row">
+                    <label class="col-sm-3 col-xs-12 col-form-label">{{ __('custom.precept') }}:</label>
+                    <div class="col-sm-7">
+                        @isset($precept)
+                            <a href="{{ $precept['path'] }}" target="_blank" id="precept_file">
+                                <i class="fa fa-file-pdf-o red"></i> {{ $precept['name'] }}
+                            </a><br><br>
+                        @endisset
+
+                        @isset($allPreceptFiles)
+                            <select class="input-border-r-6 form-control js-select" name="precept_select">
+                                <option value="">{{ uctrans('custom.select_precept') }}</option>
+                                @foreach($allPreceptFiles as $preceptFile)
+                                    <option value="{{ $preceptFile }}">{{ $preceptFile }}</option>
+                                @endforeach
+                            </select>
+                            <br>
+                            <br>
+                        @endisset
+                            <div class="inline-block choose-precept">
+                                <span class="badge badge-pill"><label class="js-precept" for="precept">{{ uctrans('custom.upload_precept') }}</label></span>
+                                <input class="hidden js-precept-input" type="file" name="precept" value="">
+                                <span id="priview-precept">
+                                <i class="precept-type"></i>
+                                <span class="file-name"></span>
+                            </span>
+                            </div>
+                        <div class="error">{{ $errors->first('precept') }}</div>
+                    </div>
+                </div>
+            @endif
             <div class="form-group row">
                 <div class="col-xs-12 p-l-r-none">
                     <label for="is_admin" class="col-lg-2 col-sm-3 col-xs-5 col-form-label">{{ __('custom.admin') }}:</label>

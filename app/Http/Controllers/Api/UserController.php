@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\ApiController;
 use Illuminate\Database\QueryException;
 Use Uuid;
+use Symfony\Component\HttpFoundation\File\File;
 
 class UserController extends ApiController
 {
@@ -73,7 +74,8 @@ class UserController extends ApiController
                 'id'           => 'nullable|int|digits_between:1,10',
                 'user_ids'     => 'nullable|array',
                 'order'        => 'nullable|array',
-                'keywords'     => 'nullable|string|max:191'
+                'keywords'     => 'nullable|string|max:191',
+                'precept'      => 'nullable|boolean',
             ]);
         }
 
@@ -162,6 +164,11 @@ class UserController extends ApiController
                 $query->where('users.id', $criteria['id']);
             } elseif (isset($criteria['user_ids'])) {
                 $query->whereIn('users.id', $criteria['user_ids']);
+            }
+
+            //add search criteria for precept
+            if (isset($criteria['precept'])) {
+                ($criteria['precept'] == 1) ? $query->whereNotNull('precept_file') : $query->whereNull('precept_file');
             }
 
             $query->whereNotIn('username', User::SYSTEM_USERS);
@@ -371,6 +378,7 @@ class UserController extends ApiController
             'phone'             => 'nullable|phone_number',
             'role_id'           => 'nullable',
             'org_id'            => 'nullable',
+            'precept'           => 'nullable|file|mimes:pdf',
         ]);
 
         $data['role_id'] = isset($data['role_id']) ? $data['role_id'] : [];
@@ -481,6 +489,37 @@ class UserController extends ApiController
                         $user->uri = $request->data['uri'];
                     }
 
+                }
+
+                //add preceprt filename if any
+                if(!empty($request->data['precept']) && !empty($request->data['org_id']) && Role::isAdmin()) {
+
+                    $file = $request->data['precept'];
+
+                    $fileDir = storage_path(Organisation::PRECEPT_DIR);
+                    if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                        mkdir($fileDir, 0777);
+                    }
+
+                    $fileDir = $fileDir . DIRECTORY_SEPARATOR . $org->uri;
+                    if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                        mkdir($fileDir, 0777);
+                    }
+
+                    $fileName = $file->getClientOriginalName();
+
+                    $fullFilePath = $fileDir . DIRECTORY_SEPARATOR . $fileName;
+
+                    if(file_exists($fullFilePath)) {
+                        //unlink($fullFilePath);
+                        return $this->errorResponse(__('custom.error_dublicate_precept'), ['precept' => __('custom.error_dublicate_precept')]);
+                    }
+
+                    $uploadedFile = $file->move($fileDir, $fileName);
+
+                    if ($uploadedFile instanceof File) {
+                        $user->precept_file = $fileName;
+                    }
                 }
 
                 $registered = $user->save();
@@ -602,6 +641,7 @@ class UserController extends ApiController
                 'is_admin'          => 'nullable|bool',
                 'active'            => 'nullable|bool',
                 'aproved'           => 'nullable|bool',
+                'precept'           => 'nullable|file|mimes:pdf',
                 'password_confirm'  => 'nullable|string|same:password',
             ]);
         }
@@ -797,6 +837,87 @@ class UserController extends ApiController
         ];
 
         Module::add($logData);
+
+        if(!empty($data['precept']) && isset($data['precept_select']) && Role::isAdmin()) {
+            return $this->errorResponse("Моля изберете заповед или качете нова.");
+        }
+
+        //add precept for user
+        if (!empty($data['precept']) && !isset($data['precept_select']) && Role::isAdmin()) {
+
+            $file = $data['precept'];
+
+            $fileDir = storage_path(Organisation::PRECEPT_DIR);
+
+            if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                mkdir($fileDir, 0777);
+            }
+
+            $organisationUniqueId = $data['old_org_id'];
+
+            if($data['org_id']) {
+                $organisationUniqueId = $data['org_id'];
+            }
+
+            $getOrganisation = Organisation::where('id', $organisationUniqueId)->first();
+
+            $fileDir = $fileDir . DIRECTORY_SEPARATOR . $getOrganisation->uri;
+            if (!file_exists($fileDir) && !is_dir($fileDir)) {
+                mkdir($fileDir, 0777);
+            }
+
+            $fileName = $file->getClientOriginalName();
+
+            $fullFilePath = $fileDir . DIRECTORY_SEPARATOR . $fileName;
+
+            if(file_exists($fullFilePath)) {
+                //unlink($fullFilePath);
+                return $this->errorResponse(__('custom.error_dublicate_precept'), ['precept' => __('custom.error_dublicate_precept')]);
+            }
+
+            $uploadedFile = $file->move($fileDir, $fileName);
+
+            if ($uploadedFile instanceof File) {
+                try {
+                    User::where('id', $request->id)->update([
+                        'precept_file' => $fileName
+                    ]);
+                } catch (QueryException $e) {
+                    Log::error($e->getMessage());
+
+                    return $this->errorResponse(__('custom.edit_user_fail'));
+                }
+            }
+
+        }
+
+        if(empty($data['precept']) && isset($data['precept_select']) && Role::isAdmin()) {
+            $fileName = $data['precept_select'];
+
+            $fileDir = storage_path(Organisation::PRECEPT_DIR);
+
+            $organisationUniqueId = $data['old_org_id'];
+
+            if($data['org_id']) {
+                $organisationUniqueId = $data['org_id'];
+            }
+
+            $getOrganisation = Organisation::where('id', $organisationUniqueId)->first();
+
+            $fileDir = $fileDir . DIRECTORY_SEPARATOR . $getOrganisation->uri;
+
+            if(file_exists($fileDir . DIRECTORY_SEPARATOR . $fileName)) {
+                try {
+                    User::where('id', $request->id)->update([
+                        'precept_file' => $fileName
+                    ]);
+                } catch (QueryException $e) {
+                    Log::error($e->getMessage());
+
+                    return $this->errorResponse(__('custom.edit_user_fail'));
+                }
+            }
+        }
 
         return $this->successResponse(['api_key' => $user['api_key']], true);
     }

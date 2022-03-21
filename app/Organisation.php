@@ -38,24 +38,23 @@ class Organisation extends Model implements TranslatableInterface
      * @param $uri
      * @return string|null
      */
-    public static function getPreceptFile($uri)
+    public static function getPreceptFile($uri, $filename)
     {
-      $file_path = implode(DIRECTORY_SEPARATOR, [
+      $file_path = implode("/", [
         'organisations',
         $uri
       ]);
-      $preceptFile = Storage::files('public'.DIRECTORY_SEPARATOR.$file_path);
+      $preceptFile = Storage::files('public'. DIRECTORY_SEPARATOR .$file_path);
       if(empty($preceptFile)) {
         return null;
       }
-      $preceptNameExpl = explode("/", $preceptFile[0]);
-      $preceptName = end($preceptNameExpl);
-      $file['name'] = $preceptName;
-      $file_path = implode(DIRECTORY_SEPARATOR, [
+
+      $file['name'] = $filename;
+      $file_path = implode("\\", [
         $file_path,
-        $preceptName
+          $filename
       ]);
-      if (Storage::disk('local')->exists('public'.DIRECTORY_SEPARATOR.$file_path)) {
+      if (Storage::disk('local')->exists('public'. DIRECTORY_SEPARATOR .$file_path)) {
         $file['path'] = Storage::url($file_path);
         return $file;
       }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\Storage;
 use Laravel\Scout\Searchable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -132,5 +133,64 @@ class User extends Authenticatable
     public function searchableAs()
     {
         return 'users';
+    }
+
+    /**
+     * Return the precept file name and public path
+     *
+     * @param $uri
+     * @return string|null
+     */
+    public static function getPreceptFile($uri, $fileName)
+    {
+        $file_path = implode("\\", [
+            'organisations',
+            $uri
+        ]);
+
+        $preceptFile = Storage::files('public'."\\".$file_path);
+
+        if(empty($preceptFile)) {
+            return null;
+        }
+
+        $file['name'] = $fileName;
+        $file_path = implode("\\", [
+            $file_path,
+            $fileName
+        ]);
+
+        if (Storage::disk('local')->exists('public'."\\".$file_path)) {
+            $file['path'] = Storage::url($file_path);
+            return $file;
+        }
+        return null;
+    }
+
+    /**
+     *	Return all files from public path
+     *
+     */
+    public static function getAllPreceptFiles($uri)
+    {
+        $file_path = implode("/", [
+            'organisations',
+            $uri
+        ]);
+
+        $preceptFiles = Storage::files('public'. DIRECTORY_SEPARATOR .$file_path);
+
+        if(empty($preceptFiles)) {
+            return null;
+        }
+
+        $preceptNames = [];
+
+        foreach($preceptFiles as $file) {
+            $fileArr = explode('/', $file);
+            $preceptNames[] = end($fileArr);
+        }
+
+        return $preceptNames;
     }
 }

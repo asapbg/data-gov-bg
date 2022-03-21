@@ -14,6 +14,7 @@ use App\Organisation;
 use App\CustomSetting;
 use App\ActionsHistory;
 use App\ElasticDataSet;
+use App\UserToOrgRole;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -53,7 +54,7 @@ class OrganisationController extends AdminController
         if (isset($request->approved)) {
             $params['criteria']['approved'] = (bool) $request->approved;
         }
-        
+
         if (isset($request->precept)) {
             $params['criteria']['precept'] = (bool) $request->precept;
         }
@@ -166,6 +167,7 @@ class OrganisationController extends AdminController
         }
 
         $post['data']['description'] = $post['data']['descript'];
+
         $request = Request::create('/api/addOrganisation', 'POST', $post);
         $api = new ApiOrganisation($request);
         $result = $api->addOrganisation($request)->getData();
@@ -257,7 +259,7 @@ class OrganisationController extends AdminController
         $orgModel = Organisation::with('CustomSetting')->find($org->id)->loadTranslations();
         $customModel = CustomSetting::where('org_id', $orgModel->id)->get()->loadTranslations();
         $orgModel->logo = $this->getImageData($orgModel->logo_data, $orgModel->logo_mime_type);
-        $orgModel->precept = ($orgModel->precept == Organisation::HAS_PRECEPT_TRUE) ? Organisation::getPreceptFile($uri) : null;
+        //$orgModel->precept = ($orgModel->precept == Organisation::HAS_PRECEPT_TRUE) ? Organisation::getPreceptFile($uri) : null;
 
         $root = 'admin';
 
@@ -539,12 +541,23 @@ class OrganisationController extends AdminController
 
       if ($result->success && !empty($result->data)) {
 
-        $precept = Organisation::getPreceptFile($uri);
+        $relationships = UserToOrgRole::has('organisation')
+            ->where('org_id', $result->data->id)
+            ->whereHas('user', function ($query){
+                $query->whereNotNull('precept_file');
+            })->get();
+
+        $usersResult = [];
+
+        foreach($relationships as $key => $relationship) {
+            $usersResult[$key]['name'] = $relationship->user->firstname." ".$relationship->user->lastname;
+            $usersResult[$key]['precept'] = Organisation::getPreceptFile($relationship->organisation->uri, $relationship->user->precept_file);
+        }
 
         return view(
           'user/orgPrecept',
           [
-            'precept'        => $precept,
+            'precepts'       => $usersResult,
             'organisation'   => $result->data
           ]
         );

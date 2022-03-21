@@ -48,7 +48,7 @@
     <div class="row">
         @include('partials.admin-sidebar', [
             'action' => 'Admin\UserController@list',
-            'options' => ['organisation', 'role', 'approved', 'active', 'admin']
+            'options' => ['organisation', 'role', 'approved', 'active', 'admin', 'precept']
         ])
         <div class="col-sm-9 col-xs-12 list-orgs user-orgs user-list">
             @if (!empty($users))

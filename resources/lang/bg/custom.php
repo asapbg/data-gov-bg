@@ -201,6 +201,7 @@ return [
   'select_image' => 'избери изображение',
   'precept' => 'Заповед',
   'select_precept' => 'избери заповед',
+  'upload_precept' => 'Качи заповед',
   'label_name' => 'Наименование',
   'create_group' => 'Създаване на група',
   'org_name' => 'Име на организация',

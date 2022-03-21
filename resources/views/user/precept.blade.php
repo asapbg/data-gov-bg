@@ -8,12 +8,19 @@
     </div>
     <div class="col-sm-9 col-xs-12 p-md">
         @if(\Auth::user()->is_admin)
-            @if ($precept)
-                <div class="col-xs-12 p-sm">
-                    <a href="{{ $precept['path'] }}" target="_blank" id="precept_file">
-                        <i class="fa fa-file-pdf-o red"></i> {{ $precept['name'] }}
-                    </a>
-                </div>
+            @if ($precepts)
+                @foreach($precepts as $precept)
+                    <div class="col-xs-4 p-sm">
+                        {{ $precept['name'] }}
+                    </div>
+                    <div class="col-xs-8 p-sm">
+                        <a href="{{ $precept['precept']['path'] }}" target="_blank" id="precept_file">
+                            <i class="fa fa-file-pdf-o red"></i> {{ $precept['precept']['name'] }}
+                        </a>
+                    </div>
+                    <br>
+                    <br>
+                @endforeach
             @else
                 <div class="col-sm-9 m-t-xl no-info">
                     {{ __('custom.no_info') }}
