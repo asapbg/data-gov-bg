@@ -14112,7 +14112,8 @@ button.close {
 
 body {
   cursor: default;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'SofiaSans', 'Roboto', sans-serif;
+    font-size: 1.5rem;
   min-width: 318px;
 }
 
@@ -19098,7 +19099,7 @@ hr.news-count {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 6;
-  height: 130px;
+  height: 146px;
 }
 
 .theme-organisation .list-orgs .org-name {

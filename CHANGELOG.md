@@ -13,9 +13,17 @@ Security - in case of vulnerabilities.
 
 ## [Unreleased] - XXXX-XX-XX
 
-## [1.4.13] - 2022-04-15
+## [1.4.15] - 2022-05-05
+### Added
+- Font sofia sans
+
+## [1.4.14] - 2022-04-15
 ### Fixed
 - RSS news feed
+
+## [1.4.13] - 2022-03-21
+### Changed
+- Precept file to user
 
 ## [1.4.12] - 2022-03-15
 ### Fixed
