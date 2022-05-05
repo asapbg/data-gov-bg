@@ -1040,7 +1040,7 @@ class UserController extends Controller {
       Module::add($logData);
 
       session()->flash('alert-success', sprintf(__('custom.resources_moved_successfully_to_new_dataset'), $newDataset->name));
-      
+
       return redirect()->back();
 
     } catch (\Exception $ex) {
@@ -2488,6 +2488,10 @@ class UserController extends Controller {
       $apiConvert = new ApiConversion($reqConvert);
       $resultConvert = $apiConvert->$method($reqConvert)->getData();
       $data = isset($resultConvert->data) ? $resultConvert->data : [];
+    }
+
+    if (is_object($data) && property_exists($data,'csvData')) {
+      $data = $data->csvData;
     }
 
     // handle delete request

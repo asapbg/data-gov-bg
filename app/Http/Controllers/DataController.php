@@ -1029,6 +1029,10 @@ class DataController extends Controller {
           $data = isset($resultConvert->data) ? $resultConvert->data : [];
         }
 
+        if (is_object($data) && property_exists($data,'csvData')) {
+          $data = $data->csvData;
+        }
+
         $userData = [];
         $buttons = [];
         if ($authUser = \Auth::user()) {
